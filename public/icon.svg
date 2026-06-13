@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Finance App">
+  <defs>
+    <linearGradient id="g" x1="72" y1="72" x2="440" y2="440" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2FBF8E"/>
+      <stop offset="1" stop-color="#1D9E75"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="#F6F7F8"/>
+  <rect x="96" y="96" width="320" height="320" rx="96" fill="url(#g)"/>
+  <path d="M156 304c38 0 54-84 92-84s54 54 92 54" fill="none" stroke="#fff" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="346" cy="180" r="22" fill="#FAECE7"/>
+</svg>
