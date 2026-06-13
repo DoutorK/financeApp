@@ -1,0 +1,17 @@
+{
+  "name": "Finance App",
+  "short_name": "Finance",
+  "description": "App financeiro.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f7f8",
+  "theme_color": "#1d9e75",
+  "icons": [
+    {
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
