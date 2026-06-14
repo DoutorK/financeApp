@@ -6,6 +6,7 @@ type TransactionItemProps = {
   amount: string
   kind: TransactionKind
   date: string
+  onDelete?: () => void
 }
 
 const kindClass: Record<TransactionKind, string> = {
@@ -18,9 +19,21 @@ const amountClass: Record<TransactionKind, string> = {
   expense: 'text-error-900',
 }
 
-export function TransactionItem({ title, category, amount, kind, date }: TransactionItemProps) {
+export function TransactionItem({
+  title,
+  category,
+  amount,
+  kind,
+  date,
+  onDelete,
+}: TransactionItemProps) {
   return (
-    <article className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[1.25rem] border border-outline-variant bg-surface-container p-4 shadow-soft">
+    <article
+      className={[
+        'grid items-center gap-3 rounded-[1.25rem] border border-outline-variant bg-surface-container p-4 shadow-soft',
+        onDelete ? 'grid-cols-[auto_1fr_auto_auto]' : 'grid-cols-[auto_1fr_auto]',
+      ].join(' ')}
+    >
       <div
         className={`grid h-11 w-11 place-items-center rounded-[1rem] text-sm font-medium ${kindClass[kind]}`}
         aria-hidden="true"
@@ -41,6 +54,17 @@ export function TransactionItem({ title, category, amount, kind, date }: Transac
         {kind === 'income' ? '+' : '-'}
         {amount}
       </div>
+
+      {onDelete ? (
+        <button
+          type="button"
+          aria-label={`Remover ${title}`}
+          onClick={onDelete}
+          className="ml-1 grid h-8 w-8 place-items-center rounded-full text-text-variant transition-colors hover:bg-error-50 hover:text-error-900"
+        >
+          ×
+        </button>
+      ) : null}
     </article>
   )
 }
