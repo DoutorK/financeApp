@@ -1,38 +1,25 @@
 import { TransactionItem } from './TransactionItem'
-
-export type MovementTransaction = {
-  id: string
-  title: string
-  category: string
-  amount: number
-  kind: 'income' | 'expense'
-  date: string
-}
-
-export type MovementFilter = 'all' | 'income' | 'expense'
+import {
+  formatCurrency,
+  formatShortDate,
+  type Transaction,
+  type TransactionFilter,
+} from '../lib/transactions'
 
 type MovementsScreenProps = {
-  transactions: ReadonlyArray<MovementTransaction>
+  transactions: ReadonlyArray<Transaction>
   query: string
-  filter: MovementFilter
+  filter: TransactionFilter
   onQueryChange: (value: string) => void
-  onFilterChange: (value: MovementFilter) => void
+  onFilterChange: (value: TransactionFilter) => void
   onDelete: (id: string) => void
 }
 
-const filterOptions: Array<{ label: string; value: MovementFilter }> = [
+const filterOptions: Array<{ label: string; value: TransactionFilter }> = [
   { label: 'Todos', value: 'all' },
   { label: 'Receitas', value: 'income' },
   { label: 'Despesas', value: 'expense' },
 ]
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
 
 export function MovementsScreen({
   transactions,
@@ -56,6 +43,10 @@ export function MovementsScreen({
 
   const incomeCount = transactions.filter((transaction) => transaction.kind === 'income').length
   const expenseCount = transactions.filter((transaction) => transaction.kind === 'expense').length
+  const netTotal = transactions.reduce(
+    (sum, item) => sum + (item.kind === 'income' ? item.amount : -item.amount),
+    0,
+  )
 
   return (
     <section className="grid gap-4">
@@ -81,12 +72,10 @@ export function MovementsScreen({
       <div className="grid gap-3 sm:grid-cols-3">
         <article className="rounded-[1.5rem] border border-outline-variant bg-surface-container-high p-4 shadow-soft">
           <p className="text-xs font-medium uppercase tracking-[0.08em] text-text-variant">
-            Total
+            Total líquido
           </p>
           <strong className="mt-2 block text-lg font-medium tracking-[-0.03em] text-text">
-            {formatCurrency(
-              transactions.reduce((sum, item) => sum + (item.kind === 'income' ? item.amount : -item.amount), 0),
-            )}
+            {formatCurrency(netTotal)}
           </strong>
         </article>
 
@@ -117,7 +106,7 @@ export function MovementsScreen({
           type="search"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Titulo, categoria..."
+          placeholder="Título, categoria..."
           className="h-12 rounded-[1.1rem] border border-outline-variant bg-surface-container px-4 text-sm text-text outline-none ring-0 placeholder:text-text-variant focus:border-brand-400"
         />
       </label>
@@ -159,7 +148,7 @@ export function MovementsScreen({
               category={transaction.category}
               amount={formatCurrency(transaction.amount)}
               kind={transaction.kind}
-              date={transaction.date}
+              dateLabel={formatShortDate(transaction.date)}
               onDelete={() => onDelete(transaction.id)}
             />
           ))
