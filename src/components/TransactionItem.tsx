@@ -5,7 +5,7 @@ type TransactionItemProps = {
   category: string
   amount: string
   kind: TransactionKind
-  date: string
+  dateLabel: string
   onDelete?: () => void
 }
 
@@ -24,7 +24,7 @@ export function TransactionItem({
   category,
   amount,
   kind,
-  date,
+  dateLabel,
   onDelete,
 }: TransactionItemProps) {
   return (
@@ -46,7 +46,7 @@ export function TransactionItem({
         <p className="m-0 flex items-center gap-1.5 text-[0.8rem] text-text-variant">
           <span>{category}</span>
           <span>•</span>
-          <span>{date}</span>
+          <span>{dateLabel}</span>
         </p>
       </div>
 
