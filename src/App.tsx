@@ -1,3 +1,9 @@
+import { BalanceCard } from './components/BalanceCard'
+import { BottomNav } from './components/BottomNav'
+import { FabButton } from './components/FabButton'
+import { MetricCard } from './components/MetricCard'
+import { TransactionItem } from './components/TransactionItem'
+
 const metrics = [
   { label: 'Saldo', value: 8450.9, tone: 'balance' },
   { label: 'Receitas', value: 12480.5, tone: 'income' },
@@ -40,7 +46,7 @@ export default function App() {
 
       <header className="relative z-10 mx-auto flex max-w-md items-center justify-between gap-4">
         <div>
-          <p className="mb-1 text-[0.72rem] font-medium tracking-[0.14em] text-text-variant uppercase">
+          <p className="mb-1 text-[0.72rem] font-medium uppercase tracking-[0.14em] text-text-variant">
             Hoje, 13 de junho
           </p>
           <h1 className="m-0 text-[1.7rem] font-normal tracking-[-0.03em] text-text">
@@ -60,39 +66,11 @@ export default function App() {
       </header>
 
       <main className="relative z-10 mx-auto mt-4 grid max-w-md gap-4">
-        <section className="rounded-[1.75rem] border border-outline-variant bg-surface-container p-5 shadow-soft">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="mb-2 text-xs font-medium tracking-[0.12em] text-text-variant uppercase">
-                Saldo disponível
-              </p>
-              <strong className="block text-[clamp(2.4rem,10vw,3.6rem)] font-normal tracking-[-0.04em] text-text">
-                {formatCurrency(metrics[0].value)}
-              </strong>
-            </div>
-            <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-900">
-              Estável
-            </span>
-          </div>
-
-          <div className="mt-5">
-            <div className="flex h-3 overflow-hidden rounded-full bg-outline-variant">
-              <span
-                className="block h-full bg-brand-400"
-                style={{ width: `${incomeShare}%` }}
-              />
-              <span
-                className="block h-full bg-error-400"
-                style={{ width: `${expenseShare}%` }}
-              />
-            </div>
-
-            <div className="mt-2 flex justify-between gap-3 text-xs text-text-variant">
-              <span>Entradas {incomeShare}%</span>
-              <span>Saídas {expenseShare}%</span>
-            </div>
-          </div>
-        </section>
+        <BalanceCard
+          value={formatCurrency(metrics[0].value)}
+          incomeShare={incomeShare}
+          expenseShare={expenseShare}
+        />
 
         <section className="flex gap-2">
           {chips.map((chip, index) => (
@@ -113,27 +91,12 @@ export default function App() {
 
         <section className="grid gap-3 sm:grid-cols-3">
           {metrics.map((item) => (
-            <article
+            <MetricCard
               key={item.label}
-              className={[
-                'rounded-[1.5rem] border p-4 shadow-soft',
-                item.tone === 'expense'
-                  ? 'border-error-50 bg-error-50/60'
-                  : 'border-outline-variant bg-surface-container-high',
-              ].join(' ')}
-            >
-              <p className="text-xs font-medium tracking-[0.08em] text-text-variant uppercase">
-                {item.label}
-              </p>
-              <strong
-                className={[
-                  'mt-2 block text-lg font-medium tracking-[-0.03em]',
-                  item.tone === 'expense' ? 'text-error-900' : 'text-text',
-                ].join(' ')}
-              >
-                {formatCurrency(item.value)}
-              </strong>
-            </article>
+              label={item.label}
+              value={formatCurrency(item.value)}
+              tone={item.tone}
+            />
           ))}
         </section>
 
@@ -147,77 +110,21 @@ export default function App() {
 
           <div className="grid gap-2">
             {transactions.map((item) => (
-              <article
+              <TransactionItem
                 key={`${item.title}-${item.date}`}
-                className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[1.25rem] border border-outline-variant bg-surface-container p-4 shadow-soft"
-              >
-                <div
-                  className={[
-                    'grid h-11 w-11 place-items-center rounded-[1rem] text-sm font-medium',
-                    item.kind === 'income'
-                      ? 'bg-brand-50 text-brand-900'
-                      : 'bg-error-50 text-error-900',
-                  ].join(' ')}
-                  aria-hidden="true"
-                >
-                  {item.kind === 'income' ? '↗' : '↘'}
-                </div>
-
-                <div className="min-w-0">
-                  <strong className="mb-1 block truncate text-sm font-medium text-text">
-                    {item.title}
-                  </strong>
-                  <p className="m-0 flex items-center gap-1.5 text-[0.8rem] text-text-variant">
-                    <span>{item.category}</span>
-                    <span>•</span>
-                    <span>{item.date}</span>
-                  </p>
-                </div>
-
-                <div
-                  className={[
-                    'whitespace-nowrap text-sm font-medium tracking-[-0.02em]',
-                    item.kind === 'income' ? 'text-brand-900' : 'text-error-900',
-                  ].join(' ')}
-                >
-                  {item.kind === 'income' ? '+' : '-'}
-                  {formatCurrency(item.amount)}
-                </div>
-              </article>
+                title={item.title}
+                category={item.category}
+                amount={formatCurrency(item.amount)}
+                kind={item.kind}
+                date={item.date}
+              />
             ))}
           </div>
         </section>
       </main>
 
-      <button
-        type="button"
-        aria-label="Adicionar lançamento"
-        className="fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-4 z-20 grid h-14 w-14 place-items-center rounded-2xl bg-brand-500 text-3xl text-white shadow-fab-lg"
-      >
-        +
-      </button>
-
-      <nav
-        aria-label="Navegação principal"
-        className="fixed bottom-3 left-3 right-3 z-10 grid grid-cols-3 gap-2 rounded-[1.5rem] border border-outline-variant bg-surface-container/95 p-2 shadow-elevated backdrop-blur-xl"
-      >
-        {navItems.map((item) => (
-          <button
-            key={item.label}
-            type="button"
-            aria-current={item.active ? 'page' : undefined}
-            className={[
-              'flex flex-col items-center justify-center gap-1 rounded-[1.1rem] px-2 py-2 text-[0.72rem] font-medium transition-colors',
-              item.active ? 'bg-brand-50 text-brand-900' : 'text-text-variant',
-            ].join(' ')}
-          >
-            <span aria-hidden="true" className="text-base leading-none">
-              {item.icon}
-            </span>
-            {item.label}
-          </button>
-        ))}
-      </nav>
+      <FabButton label="Adicionar lançamento" />
+      <BottomNav items={navItems} />
     </div>
   )
 }
