@@ -1,27 +1,22 @@
+import { useState } from 'react'
 import { BalanceCard } from './components/BalanceCard'
 import { BottomNav } from './components/BottomNav'
 import { FabButton } from './components/FabButton'
 import { MetricCard } from './components/MetricCard'
-import { TransactionItem } from './components/TransactionItem'
+import { MovementsScreen, type MovementFilter, type MovementTransaction } from './components/MovementsScreen'
 
-const metrics = [
-  { label: 'Saldo', value: 8450.9, tone: 'balance' },
-  { label: 'Receitas', value: 12480.5, tone: 'income' },
-  { label: 'Despesas', value: 4029.6, tone: 'expense' },
-] as const
-
-const transactions = [
-  { title: 'Salário mensal', category: 'Salário', amount: 9800, kind: 'income', date: '13 jun' },
-  { title: 'Mercado', category: 'Alimentação', amount: 184.7, kind: 'expense', date: '12 jun' },
-  { title: 'Gasolina', category: 'Transporte', amount: 128.9, kind: 'expense', date: '11 jun' },
-] as const
+type Screen = 'Movimentos' | 'Início' | 'Perfil'
 
 const chips = ['Semana', 'Mês', 'Ano'] as const
 
+const initialTransactions: MovementTransaction[] = [
+  { id: 'tx-1', title: 'Salário mensal', category: 'Salário', amount: 9800, kind: 'income', date: '13 jun' },
+]
+
 const navItems = [
-  { label: 'Início', icon: '⌂', active: true },
-  { label: 'Movimentos', icon: '◌', active: false },
-  { label: 'Perfil', icon: '◔', active: false },
+  { label: 'Movimentos', icon: '◌' },
+  { label: 'Início', icon: '⌂' },
+  { label: 'Perfil', icon: '◔' },
 ] as const
 
 function formatCurrency(value: number) {
@@ -33,11 +28,29 @@ function formatCurrency(value: number) {
 }
 
 export default function App() {
-  const income = metrics[1].value
-  const expense = metrics[2].value
-  const total = income + expense
+  const [activeScreen, setActiveScreen] = useState<Screen>('Início')
+  const [movementQuery, setMovementQuery] = useState('')
+  const [movementFilter, setMovementFilter] = useState<MovementFilter>('all')
+  const [transactions, setTransactions] = useState<MovementTransaction[]>(initialTransactions)
+
+  const income = transactions
+    .filter((transaction) => transaction.kind === 'income')
+    .reduce((sum, transaction) => sum + transaction.amount, 0)
+  const expense = transactions
+    .filter((transaction) => transaction.kind === 'expense')
+    .reduce((sum, transaction) => sum + transaction.amount, 0)
+  const balance = income - expense
+  const total = income + expense || 1
   const incomeShare = Math.round((income / total) * 100)
   const expenseShare = 100 - incomeShare
+
+  function handleDeleteTransaction(id: string) {
+    setTransactions((current) => current.filter((transaction) => transaction.id !== id))
+  }
+
+  function handleFabClick() {
+    setActiveScreen('Movimentos')
+  }
 
   return (
     <div className="relative min-h-svh overflow-hidden bg-surface px-4 pb-32 pt-4 text-text">
@@ -66,65 +79,90 @@ export default function App() {
       </header>
 
       <main className="relative z-10 mx-auto mt-4 grid max-w-md gap-4">
-        <BalanceCard
-          value={formatCurrency(metrics[0].value)}
-          incomeShare={incomeShare}
-          expenseShare={expenseShare}
-        />
-
-        <section className="flex gap-2">
-          {chips.map((chip, index) => (
-            <button
-              key={chip}
-              type="button"
-              className={[
-                'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                index === 0
-                  ? 'bg-brand-50 text-brand-900'
-                  : 'bg-surface-container text-text-variant ring-1 ring-outline-variant',
-              ].join(' ')}
-            >
-              {chip}
-            </button>
-          ))}
-        </section>
-
-        <section className="grid gap-3 sm:grid-cols-3">
-          {metrics.map((item) => (
-            <MetricCard
-              key={item.label}
-              label={item.label}
-              value={formatCurrency(item.value)}
-              tone={item.tone}
+        {activeScreen === 'Início' ? (
+          <>
+            <BalanceCard
+              value={formatCurrency(balance)}
+              incomeShare={incomeShare}
+              expenseShare={expenseShare}
             />
-          ))}
-        </section>
 
-        <section className="grid gap-3">
-          <div className="flex items-end justify-between gap-3">
-            <h2 className="m-0 text-sm font-medium tracking-[-0.01em] text-text">
-              Movimentos recentes
+            <section className="flex gap-2">
+              {chips.map((chip, index) => (
+                <button
+                  key={chip}
+                  type="button"
+                  className={[
+                    'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                    index === 0
+                      ? 'bg-brand-50 text-brand-900'
+                      : 'bg-surface-container text-text-variant ring-1 ring-outline-variant',
+                  ].join(' ')}
+                >
+                  {chip}
+                </button>
+              ))}
+            </section>
+
+            <section className="grid gap-3 sm:grid-cols-3">
+              <MetricCard label="Saldo" value={formatCurrency(balance)} tone="balance" />
+              <MetricCard label="Receitas" value={formatCurrency(income)} tone="income" />
+              <MetricCard label="Despesas" value={formatCurrency(expense)} tone="expense" />
+            </section>
+
+            <section className="grid gap-3">
+              <div className="flex items-end justify-between gap-3">
+                <h2 className="m-0 text-sm font-medium tracking-[-0.01em] text-text">
+                  Movimentos recentes
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setActiveScreen('Movimentos')}
+                  className="text-xs font-medium text-brand-900"
+                >
+                  Ver todos
+                </button>
+              </div>
+
+              <div className="rounded-[1.25rem] border border-outline-variant bg-surface-container p-4 text-sm text-text-variant shadow-soft">
+                Toque em Movimentos para pesquisar, filtrar e remover lançamentos.
+              </div>
+            </section>
+          </>
+        ) : null}
+
+        {activeScreen === 'Movimentos' ? (
+          <MovementsScreen
+            transactions={transactions}
+            query={movementQuery}
+            filter={movementFilter}
+            onQueryChange={setMovementQuery}
+            onFilterChange={setMovementFilter}
+            onDelete={handleDeleteTransaction}
+          />
+        ) : null}
+
+        {activeScreen === 'Perfil' ? (
+          <section className="rounded-[1.5rem] border border-outline-variant bg-surface-container p-5 shadow-soft">
+            <p className="mb-1 text-xs font-medium uppercase tracking-[0.12em] text-text-variant">
+              Perfil
+            </p>
+            <h2 className="m-0 text-lg font-medium tracking-[-0.02em] text-text">
+              Em breve
             </h2>
-            <span className="text-xs text-text-variant">3 registros</span>
-          </div>
-
-          <div className="grid gap-2">
-            {transactions.map((item) => (
-              <TransactionItem
-                key={`${item.title}-${item.date}`}
-                title={item.title}
-                category={item.category}
-                amount={formatCurrency(item.amount)}
-                kind={item.kind}
-                date={item.date}
-              />
-            ))}
-          </div>
-        </section>
+            <p className="mt-2 text-sm text-text-variant">
+              Mantive esta tela simples por enquanto para não expandir a base antes da hora.
+            </p>
+          </section>
+        ) : null}
       </main>
 
-      <FabButton label="Adicionar lançamento" />
-      <BottomNav items={navItems} />
+      <FabButton label="Adicionar lancamento" onClick={handleFabClick} />
+      <BottomNav
+        items={navItems}
+        activeLabel={activeScreen}
+        onChange={(label) => setActiveScreen(label as Screen)}
+      />
     </div>
   )
 }
