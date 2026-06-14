@@ -4,6 +4,7 @@ import { BottomNav } from './components/BottomNav'
 import { FabButton } from './components/FabButton'
 import { MetricCard } from './components/MetricCard'
 import { MovementsScreen } from './components/MovementsScreen'
+import { TransactionCardPreview } from './components/TransactionCardPreview'
 import { TransactionModal } from './components/TransactionModal'
 import {
   filterTransactionsByPeriod,
@@ -171,8 +172,17 @@ export default function App() {
                   Nenhum lançamento neste período. Toque em + para criar o primeiro.
                 </div>
               ) : (
-                <div className="rounded-[1.25rem] border border-outline-variant bg-surface-container p-4 text-sm text-text-variant shadow-soft">
-                  {recentTransactions.length} lançamentos neste período.
+                <div className="grid gap-2">
+                  {recentTransactions.map((transaction) => (
+                    <TransactionCardPreview
+                      key={transaction.id}
+                      title={transaction.title}
+                      category={transaction.category}
+                      amount={formatCurrency(transaction.amount)}
+                      kind={transaction.kind}
+                      dateLabel={formatShortDate(transaction.date)}
+                    />
+                  ))}
                 </div>
               )}
             </section>
