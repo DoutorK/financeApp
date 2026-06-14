@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type PointerEvent } from 'react'
 import { generateTransactionId, type Transaction, type TransactionKind } from '../lib/transactions'
 
 type TransactionModalProps = {
@@ -24,18 +24,82 @@ const initialState = (): FormState => ({
 })
 
 const categoryOptions = ['Salário', 'Freelance', 'Alimentação', 'Transporte', 'Moradia', 'Outros']
+const CLOSE_THRESHOLD = 120
+const CLOSE_ANIMATION_MS = 220
 
 export function TransactionModal({ open, onClose, onCreate }: TransactionModalProps) {
   const [form, setForm] = useState<FormState>(initialState)
+  const [presented, setPresented] = useState(open)
+  const [closing, setClosing] = useState(false)
+  const [entered, setEntered] = useState(false)
+  const [dragOffset, setDragOffset] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const pointerStartY = useRef<number | null>(null)
+  const closeTimer = useRef<number | null>(null)
 
   useEffect(() => {
-    if (open) setForm(initialState())
-  }, [open])
+    if (open) {
+      if (closeTimer.current) {
+        window.clearTimeout(closeTimer.current)
+        closeTimer.current = null
+      }
+      setPresented(true)
+      setClosing(false)
+      setEntered(false)
+      setDragOffset(0)
+      setIsDragging(false)
+      setForm(initialState())
+      window.requestAnimationFrame(() => setEntered(true))
+      return
+    }
 
-  if (!open) return null
+    if (presented) {
+      setClosing(true)
+      setEntered(true)
+      setDragOffset(0)
+      closeTimer.current = window.setTimeout(() => {
+        setPresented(false)
+        setClosing(false)
+        setEntered(false)
+      }, CLOSE_ANIMATION_MS)
+    }
+  }, [open, presented])
+
+  useEffect(() => {
+    if (!presented) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [presented])
+
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current) window.clearTimeout(closeTimer.current)
+    }
+  }, [])
+
+  if (!presented) return null
 
   function updateField<K extends keyof FormState>(field: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [field]: value }))
+  }
+
+  function requestClose() {
+    if (closing) return
+    setClosing(true)
+    setEntered(true)
+    setIsDragging(false)
+    setDragOffset(0)
+    closeTimer.current = window.setTimeout(() => {
+      setPresented(false)
+      setClosing(false)
+      setEntered(false)
+      onClose()
+    }, CLOSE_ANIMATION_MS)
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -52,20 +116,75 @@ export function TransactionModal({ open, onClose, onCreate }: TransactionModalPr
       kind: form.kind,
       date: form.date,
     })
-    onClose()
+    requestClose()
   }
+
+  function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
+    pointerStartY.current = event.clientY
+    setIsDragging(true)
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLButtonElement>) {
+    if (!isDragging || pointerStartY.current === null) return
+
+    const deltaY = Math.max(0, event.clientY - pointerStartY.current)
+    setDragOffset(deltaY)
+  }
+
+  function handlePointerUp() {
+    if (!isDragging) return
+
+    const shouldClose = dragOffset > CLOSE_THRESHOLD
+    pointerStartY.current = null
+    setIsDragging(false)
+
+    if (shouldClose) {
+      requestClose()
+      return
+    }
+
+    setDragOffset(0)
+  }
+
+  const panelTransform = closing
+    ? 'translateY(100%) scale(0.98)'
+    : !entered
+      ? 'translateY(100%) scale(0.98)'
+      : `translateY(${dragOffset}px) scale(1)`
+  const overlayOpacity = closing
+    ? 0
+    : !entered
+      ? 0
+      : dragOffset > 0
+        ? Math.max(0.2, 1 - dragOffset / 500)
+        : 1
 
   return (
     <div className="fixed inset-0 z-30">
       <button
         type="button"
         aria-label="Fechar formulário"
-        className="absolute inset-0 cursor-default bg-text/35"
-        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-text/35 transition-opacity duration-200"
+        style={{ opacity: overlayOpacity }}
+        onClick={requestClose}
       />
 
-      <div className="absolute inset-x-0 bottom-0 rounded-t-[1.75rem] border border-outline-variant bg-surface-container p-5 shadow-elevated">
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-outline-variant" />
+      <div
+        className="absolute inset-x-0 bottom-0 max-h-[92svh] overflow-y-auto overscroll-contain rounded-t-[1.75rem] border border-outline-variant bg-surface-container p-5 shadow-elevated will-change-transform transition-[transform,opacity] duration-300 ease-out"
+        style={{ transform: panelTransform, opacity: overlayOpacity === 0 && !closing ? 0 : 1 }}
+      >
+        <button
+          type="button"
+          aria-label="Arrastar para fechar"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          className="mx-auto mb-4 block h-8 w-full touch-none overscroll-contain rounded-full"
+        >
+          <div className="mx-auto h-1.5 w-12 rounded-full bg-outline-variant" />
+        </button>
 
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
@@ -78,7 +197,7 @@ export function TransactionModal({ open, onClose, onCreate }: TransactionModalPr
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             className="grid h-10 w-10 place-items-center rounded-full text-text-variant hover:bg-surface-container-high"
           >
             ×
@@ -161,7 +280,7 @@ export function TransactionModal({ open, onClose, onCreate }: TransactionModalPr
           <div className="mt-2 flex gap-3">
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               className="flex-1 rounded-full border border-outline-variant bg-surface-container px-4 py-3 text-sm font-medium text-text-variant"
             >
               Cancelar
