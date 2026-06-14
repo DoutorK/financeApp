@@ -11,6 +11,8 @@ const chips = ['Semana', 'Mês', 'Ano'] as const
 
 const initialTransactions: MovementTransaction[] = [
   { id: 'tx-1', title: 'Salário mensal', category: 'Salário', amount: 9800, kind: 'income', date: '13 jun' },
+  { id: 'tx-2', title: 'Mercado', category: 'Alimentação', amount: 184.7, kind: 'expense', date: '12 jun' },
+  { id: 'tx-3', title: 'Gasolina', category: 'Transporte', amount: 128.9, kind: 'expense', date: '11 jun' },
 ]
 
 const navItems = [
