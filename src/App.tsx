@@ -119,8 +119,8 @@ export default function App() {
           <>
             <BalanceCard
               value={formatCurrency(summary.balance)}
-              incomeShare={summary.incomeShare}
-              expenseShare={summary.expenseShare}
+              balanceAmount={summary.balance}
+              expenseAmount={summary.expense}
             />
 
             <section className="flex gap-2 overflow-x-auto pb-1">
