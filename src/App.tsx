@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from 'react'
 import { BalanceCard } from './components/BalanceCard'
 import { BottomNav } from './components/BottomNav'
 import { FabButton } from './components/FabButton'
@@ -6,21 +5,10 @@ import { MetricCard } from './components/MetricCard'
 import { MovementsScreen } from './components/MovementsScreen'
 import { TransactionCardPreview } from './components/TransactionCardPreview'
 import { TransactionModal } from './components/TransactionModal'
-import {
-  filterTransactionsByPeriod,
-  formatCurrency,
-  formatShortDate,
-  getPeriodLabel,
-  loadTransactionsFromStorage,
-  saveTransactionsToStorage,
-  sortTransactionsDesc,
-  type Transaction,
-  type TransactionFilter,
-  type TransactionPeriod,
-} from './lib/transactions'
+import { formatCurrency, formatShortDate, type TransactionPeriod } from './lib/transactions'
 import { getLocalDateInputValue } from './lib/date'
-
-type Screen = 'Início' | 'Movimentos' | 'Perfil'
+import { useDashboardState } from './hooks/useDashboardState'
+import { useTransactionsStore } from './hooks/useTransactionsStore'
 
 const chips: Array<{ label: string; value: TransactionPeriod }> = [
   { label: 'Semana', value: 'week' },
@@ -35,58 +23,28 @@ const navItems = [
 ] as const
 
 export default function App() {
-  const [activeScreen, setActiveScreen] = useState<Screen>('Início')
-  const [period, setPeriod] = useState<TransactionPeriod>('month')
-  const [movementQuery, setMovementQuery] = useState('')
-  const [movementFilter, setMovementFilter] = useState<TransactionFilter>('all')
-  const [composerOpen, setComposerOpen] = useState(false)
-  const [transactions, setTransactions] = useState<Transaction[]>(() =>
-    sortTransactionsDesc(loadTransactionsFromStorage()),
-  )
+  const {
+    activeScreen,
+    setActiveScreen,
+    period,
+    setPeriod,
+    movementQuery,
+    setMovementQuery,
+    movementFilter,
+    setMovementFilter,
+    composerOpen,
+    openComposer,
+    closeComposer,
+  } = useDashboardState()
 
-  useEffect(() => {
-    saveTransactionsToStorage(transactions)
-  }, [transactions])
-
-  const periodTransactions = useMemo(
-    () => sortTransactionsDesc(filterTransactionsByPeriod(transactions, period)),
-    [transactions, period],
-  )
-
-  const summary = useMemo(() => {
-    const income = periodTransactions
-      .filter((transaction) => transaction.kind === 'income')
-      .reduce((sum, transaction) => sum + transaction.amount, 0)
-    const expense = periodTransactions
-      .filter((transaction) => transaction.kind === 'expense')
-      .reduce((sum, transaction) => sum + transaction.amount, 0)
-    const balance = income - expense
-    const total = income + expense || 1
-
-    return {
-      income,
-      expense,
-      balance,
-      incomeShare: Math.round((income / total) * 100),
-      expenseShare: 100 - Math.round((income / total) * 100),
-    }
-  }, [periodTransactions])
-
-  function handleDeleteTransaction(id: string) {
-    setTransactions((current) => current.filter((transaction) => transaction.id !== id))
-  }
-
-  function handleCreateTransaction(transaction: Transaction) {
-    setTransactions((current) => sortTransactionsDesc([transaction, ...current]))
-    setActiveScreen('Movimentos')
-  }
-
-  function handleFabClick() {
-    setComposerOpen(true)
-  }
-
-  const recentTransactions = periodTransactions.slice(0, 3)
-  const periodLabel = getPeriodLabel(period)
+  const {
+    periodTransactions,
+    recentTransactions,
+    periodLabel,
+    summary,
+    createTransaction,
+    deleteTransaction,
+  } = useTransactionsStore(period)
 
   return (
     <div className="relative min-h-svh overflow-hidden bg-surface px-4 pb-32 pt-4 text-text">
@@ -197,7 +155,7 @@ export default function App() {
             filter={movementFilter}
             onQueryChange={setMovementQuery}
             onFilterChange={setMovementFilter}
-            onDelete={handleDeleteTransaction}
+            onDelete={deleteTransaction}
           />
         ) : null}
 
@@ -216,17 +174,20 @@ export default function App() {
         ) : null}
       </main>
 
-      <FabButton label="Adicionar lançamento" onClick={handleFabClick} />
+      <FabButton label="Adicionar lançamento" onClick={openComposer} />
       <BottomNav
         items={navItems}
         activeLabel={activeScreen}
-        onChange={(label) => setActiveScreen(label as Screen)}
+        onChange={(label) => setActiveScreen(label as 'Início' | 'Movimentos' | 'Perfil')}
       />
 
       <TransactionModal
         open={composerOpen}
-        onClose={() => setComposerOpen(false)}
-        onCreate={handleCreateTransaction}
+        onClose={closeComposer}
+        onCreate={(transaction) => {
+          createTransaction(transaction)
+          setActiveScreen('Movimentos')
+        }}
       />
     </div>
   )
