@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent } from 'react'
-import { generateTransactionId, type Transaction, type TransactionKind } from '../lib/transactions'
+import {
+  generateTransactionId,
+  type Transaction,
+  type TransactionKind,
+} from '../lib/transactions'
+import { getLocalDateInputValue } from '../lib/date'
 
 type TransactionModalProps = {
   open: boolean
@@ -20,7 +25,7 @@ const initialState = (): FormState => ({
   category: 'Outros',
   amount: '',
   kind: 'expense',
-  date: new Date().toISOString().slice(0, 10),
+  date: getLocalDateInputValue(),
 })
 
 const categoryOptions = ['Salário', 'Freelance', 'Alimentação', 'Transporte', 'Moradia', 'Outros']
