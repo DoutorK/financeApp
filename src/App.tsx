@@ -18,6 +18,7 @@ import {
   type TransactionFilter,
   type TransactionPeriod,
 } from './lib/transactions'
+import { getLocalDateInputValue } from './lib/date'
 
 type Screen = 'Início' | 'Movimentos' | 'Perfil'
 
@@ -95,7 +96,7 @@ export default function App() {
       <header className="relative z-10 mx-auto flex max-w-md items-center justify-between gap-4">
         <div>
           <p className="mb-1 text-[0.72rem] font-medium uppercase tracking-[0.14em] text-text-variant">
-            Hoje, {formatShortDate(new Date().toISOString().slice(0, 10))}
+            Hoje, {formatShortDate(getLocalDateInputValue())}
           </p>
           <h1 className="m-0 text-[1.7rem] font-normal tracking-[-0.03em] text-text">
             Carteira
@@ -108,7 +109,7 @@ export default function App() {
           className="grid h-12 w-12 place-items-center rounded-full bg-surface-container shadow-soft ring-1 ring-outline-variant"
         >
           <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-50 text-sm font-semibold text-brand-900">
-            MJ
+            FA
           </span>
         </button>
       </header>
