@@ -1,0 +1,15 @@
+| Parte do Código | IA usada | Prompt/Instrução dada | Por que usou IA aqui
+| --- | --- | --- | --- |
+| Design | Claude | Você é um design que é especialista no Design System do Google (Material UI). Me recomende uma estilização para meu projeto de administração fianceira. O objetivo é ser algo simples. A estrutura está no arquivo "App.tsx"  | Não tinha muito tempo pra desenhar um design para o projeto |
+| FabButton  | Codex | Crie um botão no canto inferior direito da tela para adicionar as movimentações. Por enquanto não faça a logica dele. É importante seguir o design system sugerio. | Adiantar parte visual para   |
+| TransactionModal | Codex | Faça um modal para adicionar as movimentações. É IMPORTANTE seguir o design recomendado. Ele deve seuir o modelo das movimentações, contendo tudo que é requerido no type. | Tive problemas com a construção do Modal, principalmente com os inputs e movimentação da tela |
+| Perfil | Codex | Crie uma pagina nova de perfil. Pode ser simples e sem funcionalidade, quero apenas para recursos visuais por enquanto. | Agilizar o processor visual da aplicação |
+| MovimentsScreen  | Codex | Na minha tela de Movimentos adicione uma pesquisa envolvendo os elementos: titulo e descrição para melhor UX do usuario  | ajuste na UX do App  |
+| Estilização geral  | Codex | Ajuste os componentes para eles ficarem minimamente responsivos. Depois vou trabalhar com o ajuste do app para navegadores Desktop. IMPORTANTE NÃO FAZER NENHUMA CRIAÇÃO E NEM REFATORAÇÃO DESNECESSARIA  | Tornando Componentes responsivos  |
+| TransactionModal | Codex | preciso melhorar a usabilidade do meu modal de movimentações. Ele está muito rigido e a tela em segundo plano também movimenta quando estou usando  | melhorar a UX mobile |
+| BalanceCard | Codex | Onde eu errei ao fazer a `barra de progresso` do meu saldo, a funcionalidade era para ser: o total - o que eu gastei. mas por algum motivo esta me dando não absolutos| Correção rapida de bugs de funcionalidade |
+| Correção da data | Codex | Estou com um problema na contagem de data, ao acessar no fim do dia, ele muda para o proximo dia. Veja isso e separe a logica das datas em um arquivo para melhorar a manutenabilidade |  refatoração para melhorar a correção e legibilidade  |
+|  TransationItem  | Codex  | Quero que o usuário consiga ver algumas movimentações na tela de inicio. Tava os movimentos mais recentes para o inicio  | agilizar o processo de dev  |
+|  Dashboar Hook  | Codex | Revise minha logica do arquivo "useDashboardState", veja se tem algo a melhorar para a manutenabilidade e legibilidade  | revisão e melhoria de codigo |
+| Transaction Hook  | Codex  | Revise a logica do arquivo "transations". Como ele lida com data e hora também, eu estava pensando em juntas as logicas para centralizar tudo e não prejudicar a manutenabilidade | Revisão e possivel melhoria |
+|README| Codex | Ajuste o readme adicionando instruções de como rodar o projeto na sua maquina, não inventa muito, seja breve| poupar tempo e entregar ao mais consistente|
